@@ -8,6 +8,6 @@ let package = Package(
     targets: [
         .target(name: "FreeJigCore"),
         .executableTarget(name: "FreeJig", dependencies: ["FreeJigCore"]),
-        .testTarget(name: "FreeJigCoreTests", dependencies: ["FreeJigCore"])
+        .executableTarget(name: "FreeJigChecks", dependencies: ["FreeJigCore"], path: "Tests/FreeJigCoreTests")
     ]
 )
