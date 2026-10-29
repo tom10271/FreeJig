@@ -166,15 +166,21 @@ final class Controller: ObservableObject {
     }
 
     func tick() {
-        hasAccessibility = AXIsProcessTrusted()
+        let accessibility = AXIsProcessTrusted()
+        if hasAccessibility != accessibility { hasAccessibility = accessibility }
         guard enabled else { transition(.stopped); return }
         let now = Date()
         if let deadline, now >= deadline { stop(); return }
         guard !sleeping, !sessionLocked else { transition(.locked); return }
         guard settings.schedule.contains(now, calendar: .current) else { transition(.scheduled); return }
-        let running = Set(NSWorkspace.shared.runningApplications.compactMap(\.bundleIdentifier))
-        guard settings.appRule.allows(running: running, frontmost: NSWorkspace.shared.frontmostApplication?.bundleIdentifier) else {
-            transition(.appCondition); return
+        if settings.appRule.condition != .any {
+            let running: Set<String> = settings.appRule.condition == .running
+                ? Set(NSWorkspace.shared.runningApplications.compactMap(\.bundleIdentifier)) : []
+            let frontmost = settings.appRule.condition == .running
+                ? nil : NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+            guard settings.appRule.allows(running: running, frontmost: frontmost) else {
+                transition(.appCondition); return
+            }
         }
         guard !needsInputPermission || hasAccessibility else { transition(.permission); return }
         guard physicalIdle >= settings.startAfter, !inputBusy else {
@@ -182,14 +188,14 @@ final class Controller: ObservableObject {
             transition(.idle); return
         }
         guard power.acquire() else { transition(.failure("macOS could not prevent idle sleep")); return }
-        state = .active
+        transition(.active)
         guard lastPulse == nil || now.timeIntervalSince(lastPulse!) >= settings.interval else { return }
         lastPulse = now
         pulse()
     }
 
     private func transition(_ next: State) {
-        state = next
+        if state != next { state = next }
         if next != .active { power.release(); cancelMovement() }
     }
 

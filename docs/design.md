@@ -34,6 +34,8 @@ Presentation measures content and explicitly sets the window content size after 
 
 The controller checks session stop deadline, lock/sleep state, schedule, app condition, Accessibility permission, physical input idle time, and event interval in that order. Waiting or blocked states release the display-sleep assertion. Silent mode uses only a display-sleep assertion and requires no Accessibility grant unless optional event actions are enabled. System sleep, screen locking, and explicit user sleep remain authoritative. Clicking and key pulses require explicit opt-in. The controller never moves the pointer while a mouse button is down.
 
+The existing `State` enum remains the authority for status. The controller publishes status and permission changes only when their values change. Otherwise every timer tick would invalidate SwiftUI and recreate the menu icon. App eligibility reads the running-app list only for the running condition and the frontmost identifier only for the frontmost conditions. Any app requires neither query. The menu item's autosave name is FreeJig.
+
 ## Verification
 
 The FreeJigChecks executable covers schedule boundaries, overnight weekday ownership, equal times, empty day sets, app conditions, stop deadlines, and persisted numeric validation. It uses Foundation checks so it can run with Command Line Tools without a full Xcode installation. This replaces the initial XCTest plan after local compilation established XCTest is unavailable. Runtime checks cover the built app, menu bar popover, safe defaults, power assertion lifecycle, and missing permission state. Input behavior requiring an Accessibility grant is reported separately if unavailable.
