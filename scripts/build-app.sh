@@ -8,7 +8,7 @@ export SWIFTPM_MODULECACHE_OVERRIDE="$root/.build/ModuleCache"
 mkdir -p "$root/.build/cache" "$root/dist"
 swift build -c release --disable-sandbox --cache-path "$root/.build/cache"
 binary_dir="$(swift build -c release --show-bin-path --disable-sandbox --cache-path "$root/.build/cache")"
-app="$root/dist/FreeJig.app"
+app="$root/.build/FreeJig.noindex/FreeJig.app"
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources"
 cp "$binary_dir/FreeJig" "$app/Contents/MacOS/FreeJig"
 cat > "$app/Contents/Info.plist" <<'PLIST'
@@ -19,8 +19,8 @@ cat > "$app/Contents/Info.plist" <<'PLIST'
 <key>CFBundleDisplayName</key><string>FreeJig</string>
 <key>CFBundleExecutable</key><string>FreeJig</string>
 <key>CFBundleIdentifier</key><string>io.github.tom10271.FreeJig.macOS</string>
-<key>CFBundleVersion</key><string>12</string>
-<key>CFBundleShortVersionString</key><string>0.1.4</string>
+<key>CFBundleVersion</key><string>13</string>
+<key>CFBundleShortVersionString</key><string>0.1.1</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleIconFile</key><string>AppIcon</string>
 <key>LSMinimumSystemVersion</key><string>13.0</string>

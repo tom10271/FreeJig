@@ -13,10 +13,11 @@ xcode-select --install
 git clone https://github.com/tom10271/FreeJig.git
 cd FreeJig
 bash scripts/build-app.sh
-open dist/FreeJig.app
+ditto .build/FreeJig.noindex/FreeJig.app /Applications/FreeJig.app
+open /Applications/FreeJig.app
 ```
 
-The script creates an app bundle and a ZIP for the Mac architecture used to build it. Move the app to Applications before granting Accessibility permission or enabling launch at login. Rebuilding an ad-hoc-signed app can require removing and adding its Accessibility entry again.
+The script stages the app in a Spotlight-excluded folder and creates a ZIP in dist for the Mac architecture used to build it. Quit FreeJig before replacing an installed copy. Keep the installed app in Applications before granting Accessibility permission or enabling launch at login. Rebuilding an ad-hoc-signed app can require removing and adding its Accessibility entry again.
 
 If FreeJig is enabled in Accessibility but still reports that permission is needed, quit FreeJig, remove its old entry, and add the current app again. macOS checks the build's signing requirement as well as the app name. An old enabled entry can therefore reject a replacement build. The app's **Reveal this copy in Finder** button identifies the exact copy to add.
 
@@ -24,7 +25,7 @@ The first release is ad-hoc signed, without Apple notarization. On a downloaded 
 
 Opening FreeJig from the Dock shows a centered settings window. Clicking its menu bar icon opens a native popup that closes when you click outside it.
 
-On macOS 26, also enable FreeJig in **System Settings > Menu Bar**. Version 0.1.4 uses the macOS bundle identifier io.github.tom10271.FreeJig.macOS after macOS repeatedly blocked development identities. Existing settings stay in their original preferences store. Open the GUI through Finder, the Dock, or `open dist/FreeJig.app`.
+On macOS 26, also enable FreeJig in **System Settings > Menu Bar**. The current builds use the macOS bundle identifier io.github.tom10271.FreeJig.macOS after macOS repeatedly blocked development identities. Existing settings stay in their original preferences store. Open the installed GUI through Finder, the Dock, or `open /Applications/FreeJig.app`. The header shows the release version and build counter from the bundle metadata.
 
 ## Use FreeJig
 
@@ -63,12 +64,12 @@ Silent mode controls idle sleep. It does not manufacture keyboard or mouse activ
 ```sh
 swift run FreeJigChecks
 bash scripts/build-app.sh
-dist/FreeJig.app/Contents/MacOS/FreeJig --self-check
+.build/FreeJig.noindex/FreeJig.app/Contents/MacOS/FreeJig --self-check
 ```
 
 The policy checks cover scheduling, overnight boundaries, app conditions, stop deadlines, and settings validation. The app's self-check creates a real macOS power assertion, observes it through IOKit, releases it, and checks that it disappeared.
 
-For a UI check, run `open dist/FreeJig.app --args --show-window`. Check Start, Stop, schedule controls, app selection, and the Accessibility prompt. Real pointer movement, click, scroll, and Shift checks need an Accessibility grant. Check them in an empty test document with no actionable content under the pointer.
+For a UI check, run `open /Applications/FreeJig.app`. Check Start, Stop, schedule controls, app selection, and the Accessibility prompt. Real pointer movement, click, scroll, and Shift checks need an Accessibility grant. Check them in an empty test document with no actionable content under the pointer.
 
 Add `--verify-placement` to check the actual displayed window against the screen bounds. This diagnostic checks centering without registering a menu item, then exits automatically. Quit an existing FreeJig instance before running it. A mismatch or an already-running instance exits with status 1.
 

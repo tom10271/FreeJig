@@ -6,6 +6,8 @@ import UniformTypeIdentifiers
 struct ContentView: View {
     @ObservedObject var controller: Controller
     private let accent = Color(red: 0.20, green: 0.73, blue: 0.48)
+    private let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "dev"
+    private let buildNumber = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "?"
 
     var body: some View {
         VStack(spacing: 18) {
@@ -47,6 +49,8 @@ struct ContentView: View {
             VStack(alignment: .leading, spacing: 5) {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text("FreeJig").font(.system(size: 25, weight: .bold, design: .rounded))
+                    Text("\(version) (build \(buildNumber))")
+                        .font(.system(size: 11, weight: .medium)).foregroundStyle(.secondary)
                     Text("FREE & OPEN SOURCE").font(.system(size: 9, weight: .bold)).tracking(0.7)
                         .foregroundStyle(.secondary).padding(.horizontal, 6).padding(.vertical, 4)
                         .background(.quaternary, in: Capsule())
