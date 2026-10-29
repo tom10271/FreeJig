@@ -151,6 +151,26 @@ struct FreeJigApp {
     }
 
     @MainActor private static func selfCheck() {
+        let suiteName = "dev.tomlo.FreeJig.checks.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let controller = Controller(defaults: defaults)
+        controller.settings.mode = .silent
+        controller.settings.startAfter = 3600
+        var updates = 0
+        let observation = controller.objectWillChange.sink { updates += 1 }
+        for _ in 0..<5 { controller.tick() }
+        guard updates == 0 else {
+            fputs("FAIL: unchanged stopped state published \(updates) UI updates\n", stderr); exit(1)
+        }
+        controller.start()
+        updates = 0
+        for _ in 0..<5 { controller.tick() }
+        guard updates == 0 else {
+            fputs("FAIL: unchanged enabled state published \(updates) UI updates\n", stderr); exit(1)
+        }
+        controller.stop()
+        observation.cancel()
         for screen in [CGRect(x: 0, y: 0, width: 1512, height: 945),
                        CGRect(x: -1920, y: 200, width: 1920, height: 1055),
                        CGRect(x: 0, y: -900, width: 640, height: 480)] {
