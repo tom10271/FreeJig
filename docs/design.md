@@ -36,7 +36,7 @@ The controller checks session stop deadline, lock/sleep state, schedule, app con
 
 The existing `State` enum remains the authority for status. The controller publishes status and permission changes only when their values change. Otherwise every timer tick would invalidate SwiftUI and recreate the menu icon. App eligibility reads the running-app list only for the running condition and the frontmost identifier only for the frontmost conditions. Any app requires neither query.
 
-The bundle and signing identifier is io.github.tom10271.FreeJig.macOS. The app continues to use the existing dev.tomlo.FreeJig preferences suite, so upgrading preserves settings without copying them into a second store. Accessibility remains a macOS grant for the installed application. Its code signature and permission checks are not weakened. Startup activates an existing instance and returns before creating another controller or menu item.
+The bundle and signing identifier is io.github.tom10271.FreeJigApp. The app continues to use the existing dev.tomlo.FreeJig preferences suite, so upgrading preserves settings without copying them into a second store. Accessibility remains a macOS grant for the installed application. Its code signature and permission checks are not weakened. Startup activates an existing instance and returns before creating another controller or menu item.
 
 ## Verification
 

@@ -92,3 +92,11 @@ Build 19 replaces the diagnostic scene with a separate Settings-only SwiftUI app
 The installed build 19 executable matches the staged artifact, and its strict signature verification passed. The staged app's Launch Services registration was removed and the installed copy's registration refreshed. The user manually launched the correct Applications copy and confirmed that its icon was still absent. Launch Services recorded Spotlight as its parent; Control Center still explicitly blocked the host. The launch route alone therefore did not explain the failure.
 
 A temporary same-process probe compared the original SwiftUI item with a native NSStatusItem named FreeJig.Controls. Control Center blocked both. That probe was removed and the exact verified build 19 restored. Both remote CI runs passed, including the startup check. Visible menu access and popup behavior remain unresolved. The system-wide Control Centre reset was inspected and cancelled; testing it requires approval because it resets the user's layout.
+
+## Clean menu identity on 29 October 2026
+
+The user subsequently approved Reset Control Centre. The reset completed, and the recorded Menu Bar switches remained unchanged, including ChatGPT off. It did not clear the old identity's blocked-host state.
+
+Build 21 uses io.github.tom10271.FreeJigApp for both bundle and signing identity. It replaces the same Applications copy and retains the dev.tomlo.FreeJig preferences suite. The release version remains 0.1.1. The old process was stopped before replacement; only the installed copy appears in Spotlight. Independent metadata review found no blocker. Accessibility and login-item grants are separate from the preserved settings and do not migrate automatically.
+
+Before any normal GUI launch, the packaged Settings-only diagnostic exited 0 with the centered 757 by 818-point window, and the Control Center log contained no menu host for the new identity. The installed executable matched the tested artifact and passed strict signature verification. The user then confirmed that one icon appeared and returned after Command-Q and reopening. Both human-launched hosts were tracked without a blocked-host transition. Popup sizing and outside-click dismissal remain pending direct confirmation.

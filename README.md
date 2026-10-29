@@ -25,7 +25,7 @@ The first release is ad-hoc signed, without Apple notarization. On a downloaded 
 
 Opening FreeJig from the Dock shows a centered settings window. Clicking its menu bar icon opens a native popup that closes when you click outside it.
 
-On macOS 26, also enable FreeJig in **System Settings > Menu Bar**. The current builds use the macOS bundle identifier io.github.tom10271.FreeJig.macOS after macOS repeatedly blocked development identities. Existing settings stay in their original preferences store. Open the installed GUI through Finder, the Dock, or `open /Applications/FreeJig.app`. The header shows the release version and build counter from the bundle metadata.
+On macOS 26, also enable FreeJig in **System Settings > Menu Bar**. The bundle and signing identifier is io.github.tom10271.FreeJigApp. Existing settings stay in their original preferences store. Open the installed GUI through Finder, the Dock, or `open /Applications/FreeJig.app`. The header shows the release version and build counter from the bundle metadata.
 
 ## Use FreeJig
 
