@@ -18,9 +18,13 @@ open dist/FreeJig.app
 
 The script creates an app bundle and a ZIP for the Mac architecture used to build it. Move the app to Applications before granting Accessibility permission or enabling launch at login. Rebuilding an ad-hoc-signed app can require removing and adding its Accessibility entry again.
 
+If FreeJig is enabled in Accessibility but still reports that permission is needed, quit FreeJig, remove its old entry, and add the current app again. macOS checks the build's signing requirement as well as the app name. An old enabled entry can therefore reject a replacement build. The app's **Reveal this copy in Finder** button identifies the exact copy to add.
+
 The first release is ad-hoc signed, without Apple notarization. On a downloaded build, macOS may require **System Settings > Privacy & Security > Open Anyway** after you try opening it. You can also build from source using the commands above. Build on an Intel Mac to produce an Intel binary.
 
 If macOS has not made the menu bar icon's anchor visible during startup, FreeJig opens a centered settings window. Clicking the visible menu bar icon uses the popover.
+
+On macOS 26, also enable FreeJig in **System Settings > Menu Bar**. If it remains hidden, the system can incorrectly associate its menu item with the disabled menu-bar record of the app that launched it. Enabling that launching app's menu item resolved the observed case. This is a system-setting workaround, and FreeJig does not change other apps' settings automatically.
 
 ## Use FreeJig
 

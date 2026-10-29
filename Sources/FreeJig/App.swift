@@ -25,6 +25,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        item.autosaveName = "FreeJig"
+        item.isVisible = true
         item.button?.target = self
         item.button?.action = #selector(showPopover)
         item.button?.setAccessibilityLabel("FreeJig")
@@ -204,6 +206,6 @@ struct FreeJigApp {
         }
         let settings = Settings()
         guard settings.click == .none, settings.scroll == .none, !settings.pressShift else { exit(1) }
-        print("PASS: window placement fits display bounds. macOS power assertion acquired, observed, and released. Input actions are off by default.")
+        print("PASS: unchanged controller states produce no UI updates. Window placement fits display bounds. macOS power assertion acquired, observed, and released.")
     }
 }

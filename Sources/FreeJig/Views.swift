@@ -90,6 +90,12 @@ struct ContentView: View {
                     .font(.system(size: 11)).foregroundStyle(.secondary)
                 Button("Open Accessibility settings") { controller.requestAccessibility() }
                     .buttonStyle(.bordered).frame(maxWidth: .infinity, alignment: .leading)
+                Text("Already enabled? Remove the old FreeJig entry, add this copy again, then reopen FreeJig. Replacing an ad-hoc signed build can invalidate its grant.")
+                    .font(.system(size: 11)).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Button("Reveal this copy in Finder") {
+                    NSWorkspace.shared.activateFileViewerSelecting([Bundle.main.bundleURL])
+                }.buttonStyle(.borderless)
             }
         }
     }
