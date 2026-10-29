@@ -174,6 +174,42 @@ struct FreeJigApp {
         }
         controller.stop()
         observation.cancel()
+        _ = NSApplication.shared
+        controller.settings.mode = .natural
+        controller.settings.autoStop.mode = .after
+        let naturalSize = NSHostingController(rootView: ContentView(controller: controller)).view.fittingSize
+        func hasScrollView(_ view: NSView) -> Bool {
+            if view is NSScrollView, !view.isHiddenOrHasHiddenAncestor,
+               view.frame.width > 0, view.frame.height > 0 { return true }
+            return view.subviews.contains(where: hasScrollView)
+        }
+        for displaySize in [CGSize(width: 1512, height: 949), CGSize(width: 1512, height: 480), CGSize(width: 640, height: 480)] {
+            let host = NSHostingController(rootView: SettingsContent(controller: controller, availableSize: displaySize))
+            let fitted = host.view.fittingSize
+            guard fitted.width <= displaySize.width - 32, fitted.height <= displaySize.height - 64,
+                  fitted.height >= min(naturalSize.height, displaySize.height - 64) - 1 else {
+                fputs("FAIL: settings fit \(fitted) hides natural content \(naturalSize) on display \(displaySize)\n", stderr)
+                exit(1)
+            }
+            print("PASS: settings fit \(fitted) preserves natural content \(naturalSize) on display \(displaySize)")
+            let minimum = host.sizeThatFits(in: CGSize(width: fitted.width, height: 0))
+            guard minimum.height >= min(naturalSize.height, displaySize.height - 64) - 1 else {
+                fputs("FAIL: menu popup collapses to \(minimum) for natural content \(naturalSize)\n", stderr)
+                exit(1)
+            }
+            let window = NSWindow(contentRect: CGRect(origin: .zero, size: fitted), styleMask: [], backing: .buffered, defer: false)
+            window.isReleasedWhenClosed = false
+            window.contentViewController = host
+            window.setContentSize(fitted)
+            host.view.layoutSubtreeIfNeeded()
+            let needsScrolling = naturalSize.width > fitted.width || naturalSize.height > fitted.height
+            guard hasScrollView(host.view) == needsScrolling else {
+                fputs("FAIL: scroll fallback does not match content overflow on \(displaySize)\n", stderr)
+                exit(1)
+            }
+            print("PASS: menu minimum \(minimum), scrolling=\(needsScrolling)")
+            window.close()
+        }
         for screen in [CGRect(x: 0, y: 0, width: 1512, height: 945),
                        CGRect(x: -1920, y: 200, width: 1920, height: 1055),
                        CGRect(x: 0, y: -900, width: 640, height: 480)] {
