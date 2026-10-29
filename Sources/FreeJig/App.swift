@@ -134,6 +134,12 @@ struct FreeJigApp {
             selfCheck()
             return
         }
+        if let identifier = Bundle.main.bundleIdentifier,
+           let running = NSRunningApplication.runningApplications(withBundleIdentifier: identifier)
+            .first(where: { $0.processIdentifier != ProcessInfo.processInfo.processIdentifier }) {
+            _ = running.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+            return
+        }
         FreeJigScenes.main()
     }
 
