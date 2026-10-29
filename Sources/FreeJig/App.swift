@@ -24,6 +24,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
+        let menu = NSMenu()
+        let applicationMenu = NSMenu()
+        menu.addItem(withTitle: "FreeJig", action: nil, keyEquivalent: "").submenu = applicationMenu
+        let quitItem = applicationMenu.addItem(withTitle: "Quit FreeJig", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        quitItem.target = NSApp
+        quitItem.keyEquivalentModifierMask = .command
+        NSApp.mainMenu = menu
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         item.autosaveName = "FreeJig"
         item.isVisible = true
