@@ -18,9 +18,9 @@ cat > "$app/Contents/Info.plist" <<'PLIST'
 <key>CFBundleName</key><string>FreeJig</string>
 <key>CFBundleDisplayName</key><string>FreeJig</string>
 <key>CFBundleExecutable</key><string>FreeJig</string>
-<key>CFBundleIdentifier</key><string>dev.tomlo.FreeJig</string>
-<key>CFBundleVersion</key><string>4</string>
-<key>CFBundleShortVersionString</key><string>0.1.3</string>
+<key>CFBundleIdentifier</key><string>io.github.tom10271.FreeJig</string>
+<key>CFBundleVersion</key><string>5</string>
+<key>CFBundleShortVersionString</key><string>0.1.4</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleIconFile</key><string>AppIcon</string>
 <key>LSMinimumSystemVersion</key><string>13.0</string>
@@ -32,8 +32,9 @@ cat > "$app/Contents/Info.plist" <<'PLIST'
 PLIST
 swift scripts/create-icon.swift "$root/.build/AppIcon.iconset"
 iconutil -c icns "$root/.build/AppIcon.iconset" -o "$app/Contents/Resources/AppIcon.icns"
-codesign --force --sign - --identifier dev.tomlo.FreeJig "$app"
+codesign --force --sign - --identifier io.github.tom10271.FreeJig "$app"
 codesign --verify --strict "$app"
 "$app/Contents/MacOS/FreeJig" --self-check
+touch "$app"
 ditto -c -k --sequesterRsrc --keepParent "$app" "$root/dist/FreeJig-macOS-$(uname -m).zip"
 printf 'Built %s\n' "$app"

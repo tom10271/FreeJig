@@ -22,9 +22,9 @@ If FreeJig is enabled in Accessibility but still reports that permission is need
 
 The first release is ad-hoc signed, without Apple notarization. On a downloaded build, macOS may require **System Settings > Privacy & Security > Open Anyway** after you try opening it. You can also build from source using the commands above. Build on an Intel Mac to produce an Intel binary.
 
-If macOS has not made the menu bar icon's anchor visible during startup, FreeJig opens a centered settings window. Clicking the visible menu bar icon uses the popover.
+Opening FreeJig from the Dock shows a centered settings window. Clicking its menu bar icon opens a native popup that closes when you click outside it.
 
-On macOS 26, also enable FreeJig in **System Settings > Menu Bar**. The menu item remained hidden on the development Mac despite this setting. FreeJig also runs as a regular Dock application so you can reopen its settings without the menu item. Enabling another app's menu item did not establish a visible fix.
+On macOS 26, also enable FreeJig in **System Settings > Menu Bar**. Version 0.1.4 uses the permanent repository bundle identifier io.github.tom10271.FreeJig after macOS repeatedly blocked the original development identifier. Existing settings stay in their original preferences store. Another app's menu bar setting is not required.
 
 ## Use FreeJig
 
@@ -32,7 +32,7 @@ On macOS 26, also enable FreeJig in **System Settings > Menu Bar**. The menu ite
 2. Choose a movement mode and an idle delay.
 3. For pointer movement, grant FreeJig access in **System Settings > Privacy & Security > Accessibility**. Silent mode needs no Accessibility access unless you enable an extra action.
 4. Click **Start**. The status explains what FreeJig is waiting for.
-5. Click **Stop**, press Control-Command-J, or quit to end the session.
+5. Click **Stop**, press Control-Command-J, or press Command-Q while FreeJig is focused to end the session.
 
 Sessions always start stopped after opening the app. Settings persist locally. If the schedule or app condition blocks a session, FreeJig releases its sleep assertion until the condition matches again. An automatic stop ends the session even while another condition blocks it.
 

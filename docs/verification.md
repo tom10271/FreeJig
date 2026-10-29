@@ -46,3 +46,13 @@ Versions through 0.1.1 explicitly hid FreeJig from the Dock with accessory activ
 The 0.1.2 release build, signature check, runtime self-check, and 80 policy checks passed. The running process reported regular activation and a non-nil application icon. These metadata checks do not prove visible Dock or menu bar icons. After the Dock UI inspector timed out, the user confirmed that the Dock icon was visible and the menu bar icon was still missing. The rebuilt app showed the Accessibility warning again because the ad-hoc code signature changed.
 
 The same 0.1.2 build was installed in /Applications/FreeJig.app. Its executable SHA-256 matched the project build. The project process was stopped before launching the installed copy. The menu bar issue remains unresolved.
+
+## Permanent menu identity and native popup on 29 October 2026
+
+The original development identity was repeatedly moved to Control Center's blocked list after launch. Removing the status item's autosave name, toggling FreeJig's Menu Bar setting off and on, and launching through Finder did not clear that block. The autosave-name experiment was reverted. A temporary copy with a fresh identity was visible, and the user confirmed its icon reopened the controls after the normal window was closed. This diagnostic copy was not the installed app and did not establish a permanent fix.
+
+The manual menu-click path could open a normal window. That window did not dismiss after outside clicks, and the click path rebuilt and measured the hosting view. Version 0.1.4 replaces that path with native MenuBarExtra window presentation and uses io.github.tom10271.FreeJig as its permanent bundle and signing identifier. The existing preferences suite remains authoritative. Temporary presentation diagnostics were removed. The build script updates the bundle directory timestamp before packaging.
+
+The release build, runtime self-check and signature verification passed. Independent review found no blocking issues. The installed executable matched the project package. Finder launched the installed app under the new identity, and the 60-second idle delay, 60-second interval and 180-minute stop remained intact. The UI inspector retained stale metadata for the old identity, so a fresh physical metadata copy was needed to bind the inspector to the already running installed process. This did not replace the installed executable.
+
+Native popup dismissal, final Command-Q and repeated reopen checks are in progress. Accessibility has not been granted to the permanent identity yet. No per-core residency or battery-life improvement is claimed.

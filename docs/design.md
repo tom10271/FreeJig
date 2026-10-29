@@ -13,7 +13,7 @@ No existing code or index exists in this new project. Exploration is sequential 
 - FreeJigCore owns persisted settings, schedule eligibility, app conditions, and stop deadlines.
 - Controller owns Accessibility checks, session state, timer, lock and sleep suspension, input events, persistence, and power assertions.
 - Views own native controls and app selection. They never calculate schedule eligibility or post events.
-- AppDelegate owns the status item, popover, and global Control-Command-J shortcut.
+- SwiftUI owns the native menu bar item and its popup. AppDelegate owns the shared controller, the normal Dock window, and the global Control-Command-J shortcut.
 - The build script produces an ad-hoc-signed application bundle. Distribution with a Developer ID is a separate release process.
 
 ## Behavior contract
@@ -30,11 +30,13 @@ Enums have String raw values, Codable, CaseIterable, Identifiable, and `title: S
 
 Core owns `Settings.validated() -> Settings` for finite bounded numeric values and enum-safe decoding. Bad persisted data falls back to defaults, with a visible error. Defaults are natural, small, 60-second idle delay and interval, no schedule, no auto-stop, any app, and no click, scroll, or Shift.
 
-Presentation measures content and explicitly sets the window content size after attaching its hosting controller, which can reset the initial frame. The final frame is centered within the chosen screen's visible bounds. Both presentations use a bounded scroll view so expanded controls cannot force the window beyond the screen. If the menu bar anchor is not visible at startup, a normal settings window opens instead. `centeredFrame` is checked against small displays and displays with negative origins. The optional `--verify-placement` diagnostic also checks the actual displayed frame.
+The Dock window measures content and explicitly sets its content size after attaching its hosting controller, which can reset the initial frame. Its final frame is centered within the chosen screen's visible bounds. The menu bar uses the native MenuBarExtra window style, which owns popup placement and outside-click dismissal. Both presentations use a bounded scroll view so expanded controls cannot force the window beyond the screen. Menu clicks never fall back to opening a normal window. `centeredFrame` is checked against small displays and displays with negative origins. The optional `--verify-placement` diagnostic checks the actual normal-window frame.
 
 The controller checks session stop deadline, lock/sleep state, schedule, app condition, Accessibility permission, physical input idle time, and event interval in that order. Waiting or blocked states release the display-sleep assertion. Silent mode uses only a display-sleep assertion and requires no Accessibility grant unless optional event actions are enabled. System sleep, screen locking, and explicit user sleep remain authoritative. Clicking and key pulses require explicit opt-in. The controller never moves the pointer while a mouse button is down.
 
-The existing `State` enum remains the authority for status. The controller publishes status and permission changes only when their values change. Otherwise every timer tick would invalidate SwiftUI and recreate the menu icon. App eligibility reads the running-app list only for the running condition and the frontmost identifier only for the frontmost conditions. Any app requires neither query. The menu item's autosave name is FreeJig.
+The existing `State` enum remains the authority for status. The controller publishes status and permission changes only when their values change. Otherwise every timer tick would invalidate SwiftUI and recreate the menu icon. App eligibility reads the running-app list only for the running condition and the frontmost identifier only for the frontmost conditions. Any app requires neither query.
+
+The permanent bundle and signing identifier is io.github.tom10271.FreeJig. The app continues to use the existing dev.tomlo.FreeJig preferences suite, so upgrading preserves settings without copying them into a second store. Accessibility remains a macOS grant for the installed application. Its code signature and permission checks are not weakened.
 
 ## Verification
 
