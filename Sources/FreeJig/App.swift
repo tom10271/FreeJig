@@ -14,45 +14,28 @@ func centeredFrame(size: CGSize, inside visibleFrame: CGRect) -> CGRect {
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    let controller = Controller()
-    private var item: NSStatusItem!
-    private let popover = NSPopover()
+    // Keep the preferences domain stable across the bundle-identifier repair.
+    let controller = Controller(defaults: UserDefaults(suiteName: "dev.tomlo.FreeJig")!)
     private var window: NSWindow?
     private var hotKey: EventHotKeyRef?
     private var hotKeyHandler: EventHandlerRef?
-    private var subscription: AnyCancellable?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        NSApp.setActivationPolicy(.accessory)
-        item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        item.autosaveName = "FreeJig"
-        item.isVisible = true
-        item.button?.target = self
-        item.button?.action = #selector(showPopover)
-        item.button?.setAccessibilityLabel("FreeJig")
-        popover.behavior = .transient
-        subscription = controller.$state.sink { [weak self] state in
-            let symbol = state == .active ? "cursorarrow.motionlines" : "computermouse"
-            self?.item.button?.image = NSImage(systemSymbolName: symbol, accessibilityDescription: "FreeJig. \(state.title)")
-            self?.item.button?.toolTip = "FreeJig. \(state.title)"
-        }
+        NSApp.setActivationPolicy(.regular)
         installShortcut()
-        if CommandLine.arguments.contains("--show-window") {
-            showWindow()
-        } else {
-            DispatchQueue.main.async { self.showPopover() }
-        }
+        showWindow()
     }
 
     private func showWindow() {
         let screen = NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) } ?? NSScreen.main!
         let view = makeContentController(on: screen)
+        let contentSize = view.preferredContentSize
         let window = self.window ?? NSWindow(contentRect: .zero,
                                             styleMask: [.titled, .closable, .miniaturizable],
                                             backing: .buffered, defer: false)
         window.isReleasedWhenClosed = false
         window.contentViewController = view
-        window.setContentSize(view.preferredContentSize)
+        window.setContentSize(contentSize)
         window.title = "FreeJig"
         window.setFrame(centeredFrame(size: window.frame.size, inside: screen.visibleFrame.insetBy(dx: 16, dy: 16)), display: false)
         window.makeKeyAndOrderFront(nil)
@@ -66,31 +49,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return true
     }
 
-    @objc private func showPopover() {
-        guard let button = item.button, let anchor = button.window,
-              anchor.isVisible, anchor.frame.height > 0, let screen = anchor.screen else {
-            showWindow()
-            return
-        }
-        if popover.isShown { popover.performClose(nil) }
-        else {
-            popover.contentViewController = makeContentController(on: screen)
-            popover.contentSize = popover.contentViewController!.preferredContentSize
-            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-            NSApp.activate(ignoringOtherApps: true)
-            DispatchQueue.main.async {
-                if let window = self.popover.contentViewController?.view.window {
-                    self.verifyPlacement(of: window, inside: screen.frame)
-                } else if CommandLine.arguments.contains("--verify-placement") {
-                    fputs("FAIL: menu-bar popover has no visible window\n", stderr); exit(1)
-                }
-            }
-        }
-    }
-
     private func verifyPlacement(of window: NSWindow, inside bounds: CGRect, centered: Bool = false) {
         guard CommandLine.arguments.contains("--verify-placement") else { return }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             guard bounds.contains(window.frame) else {
                 fputs("FAIL: visible window \(NSStringFromRect(window.frame)) exceeds display \(NSStringFromRect(bounds))\n", stderr)
                 exit(1)
@@ -100,20 +61,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             print("PASS: visible window \(NSStringFromRect(window.frame)) fits display \(NSStringFromRect(bounds))")
             fflush(stdout)
+            NSApp.terminate(nil)
         }
     }
 
     private func makeContentController(on screen: NSScreen) -> NSViewController {
-        let content = ContentView(controller: controller)
-        let idealSize = NSHostingController(rootView: content).view.fittingSize
-        let width = min(idealSize.width, screen.visibleFrame.width - 32)
-        let height = min(idealSize.height, screen.visibleFrame.height - 64)
         let host = NSHostingController(rootView:
-            ScrollView([.horizontal, .vertical]) { content }
-                .frame(width: width, height: height)
+            SettingsContent(controller: controller, availableSize: screen.visibleFrame.size)
         )
+        let contentSize = host.view.fittingSize
         host.sizingOptions = []
-        host.preferredContentSize = CGSize(width: width, height: height)
+        if #available(macOS 13.3, *) {
+            host.safeAreaRegions = []
+        }
+        host.preferredContentSize = contentSize
         return host
     }
 
@@ -139,6 +100,58 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
+private struct SettingsContent: View {
+    @ObservedObject var controller: Controller
+    let availableSize: CGSize
+
+    var body: some View {
+        let preferredWidth = 740 + NSScroller.scrollerWidth(for: .regular, scrollerStyle: .legacy)
+        let width = min(preferredWidth, availableSize.width - 32)
+        ViewThatFits {
+            ContentView(controller: controller)
+            ScrollView(width < preferredWidth ? [.horizontal, .vertical] : .vertical) {
+                ContentView(controller: controller)
+            }
+        }
+        .frame(width: width)
+        .frame(maxHeight: availableSize.height - 64)
+        .fixedSize(horizontal: false, vertical: true)
+        .background(Color(nsColor: .windowBackgroundColor))
+    }
+}
+
+private struct MenuStatusIcon: View {
+    @ObservedObject var controller: Controller
+
+    var body: some View {
+        Image(systemName: controller.state == .active ? "cursorarrow.motionlines" : "computermouse")
+            .accessibilityLabel("FreeJig. \(controller.state.title)")
+            .help("FreeJig. \(controller.state.title)")
+    }
+}
+
+private struct FreeJigScenes: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
+
+    var body: some Scene {
+        MenuBarExtra {
+            let screen = NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) } ?? NSScreen.main!
+            SettingsContent(controller: delegate.controller, availableSize: screen.visibleFrame.size)
+        } label: {
+            MenuStatusIcon(controller: delegate.controller)
+        }
+        .menuBarExtraStyle(.window)
+    }
+}
+
+private struct PlacementCheckScenes: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
+
+    var body: some Scene {
+        Settings { EmptyView() }
+    }
+}
+
 @main
 struct FreeJigApp {
     @MainActor static func main() {
@@ -146,10 +159,21 @@ struct FreeJigApp {
             selfCheck()
             return
         }
-        let application = NSApplication.shared
-        let delegate = AppDelegate()
-        application.delegate = delegate
-        withExtendedLifetime(delegate) { application.run() }
+        if let identifier = Bundle.main.bundleIdentifier,
+           let running = NSRunningApplication.runningApplications(withBundleIdentifier: identifier)
+            .first(where: { $0.processIdentifier != ProcessInfo.processInfo.processIdentifier }) {
+            if CommandLine.arguments.contains("--verify-placement") {
+                fputs("FAIL: quit the running FreeJig before checking window placement\n", stderr)
+                exit(1)
+            }
+            _ = running.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+            return
+        }
+        if CommandLine.arguments.contains("--verify-placement") {
+            PlacementCheckScenes.main()
+        } else {
+            FreeJigScenes.main()
+        }
     }
 
     @MainActor private static func selfCheck() {
@@ -173,6 +197,42 @@ struct FreeJigApp {
         }
         controller.stop()
         observation.cancel()
+        _ = NSApplication.shared
+        controller.settings.mode = .natural
+        controller.settings.autoStop.mode = .after
+        let naturalSize = NSHostingController(rootView: ContentView(controller: controller)).view.fittingSize
+        func hasScrollView(_ view: NSView) -> Bool {
+            if view is NSScrollView, !view.isHiddenOrHasHiddenAncestor,
+               view.frame.width > 0, view.frame.height > 0 { return true }
+            return view.subviews.contains(where: hasScrollView)
+        }
+        for displaySize in [CGSize(width: 1512, height: 949), CGSize(width: 1512, height: 480), CGSize(width: 640, height: 480)] {
+            let host = NSHostingController(rootView: SettingsContent(controller: controller, availableSize: displaySize))
+            let fitted = host.view.fittingSize
+            guard fitted.width <= displaySize.width - 32, fitted.height <= displaySize.height - 64,
+                  fitted.height >= min(naturalSize.height, displaySize.height - 64) - 1 else {
+                fputs("FAIL: settings fit \(fitted) hides natural content \(naturalSize) on display \(displaySize)\n", stderr)
+                exit(1)
+            }
+            print("PASS: settings fit \(fitted) preserves natural content \(naturalSize) on display \(displaySize)")
+            let minimum = host.sizeThatFits(in: CGSize(width: fitted.width, height: 0))
+            guard minimum.height >= min(naturalSize.height, displaySize.height - 64) - 1 else {
+                fputs("FAIL: menu popup collapses to \(minimum) for natural content \(naturalSize)\n", stderr)
+                exit(1)
+            }
+            let window = NSWindow(contentRect: CGRect(origin: .zero, size: fitted), styleMask: [], backing: .buffered, defer: false)
+            window.isReleasedWhenClosed = false
+            window.contentViewController = host
+            window.setContentSize(fitted)
+            host.view.layoutSubtreeIfNeeded()
+            let needsScrolling = naturalSize.width > fitted.width || naturalSize.height > fitted.height
+            guard hasScrollView(host.view) == needsScrolling else {
+                fputs("FAIL: scroll fallback does not match content overflow on \(displaySize)\n", stderr)
+                exit(1)
+            }
+            print("PASS: menu minimum \(minimum), scrolling=\(needsScrolling)")
+            window.close()
+        }
         for screen in [CGRect(x: 0, y: 0, width: 1512, height: 945),
                        CGRect(x: -1920, y: 200, width: 1920, height: 1055),
                        CGRect(x: 0, y: -900, width: 640, height: 480)] {

@@ -2,7 +2,7 @@
 
 A free, open-source mouse jiggler for macOS. All controls are included under the MIT license.
 
-FreeJig lives in your menu bar. Start it when you want your Mac to stay awake, then let it wait until you stop using the keyboard and mouse. Control-Command-J starts or stops the session from any app.
+FreeJig provides Dock and menu bar access. Start it when you want your Mac to stay awake, then let it wait until you stop using the keyboard and mouse. Control-Command-J starts or stops the session from any app.
 
 ## Build and run
 
@@ -13,26 +13,27 @@ xcode-select --install
 git clone https://github.com/tom10271/FreeJig.git
 cd FreeJig
 bash scripts/build-app.sh
-open dist/FreeJig.app
+ditto .build/FreeJig.noindex/FreeJig.app /Applications/FreeJig.app
+open /Applications/FreeJig.app
 ```
 
-The script creates an app bundle and a ZIP for the Mac architecture used to build it. Move the app to Applications before granting Accessibility permission or enabling launch at login. Rebuilding an ad-hoc-signed app can require removing and adding its Accessibility entry again.
+The script stages the app in a Spotlight-excluded folder and creates a ZIP in dist for the Mac architecture used to build it. Quit FreeJig before replacing an installed copy. Keep the installed app in Applications before granting Accessibility permission or enabling launch at login. Rebuilding an ad-hoc-signed app can require removing and adding its Accessibility entry again.
 
 If FreeJig is enabled in Accessibility but still reports that permission is needed, quit FreeJig, remove its old entry, and add the current app again. macOS checks the build's signing requirement as well as the app name. An old enabled entry can therefore reject a replacement build. The app's **Reveal this copy in Finder** button identifies the exact copy to add.
 
 The first release is ad-hoc signed, without Apple notarization. On a downloaded build, macOS may require **System Settings > Privacy & Security > Open Anyway** after you try opening it. You can also build from source using the commands above. Build on an Intel Mac to produce an Intel binary.
 
-If macOS has not made the menu bar icon's anchor visible during startup, FreeJig opens a centered settings window. Clicking the visible menu bar icon uses the popover.
+Opening FreeJig from the Dock shows a centered settings window. Clicking its menu bar icon opens a native popup that closes when you click outside it.
 
-On macOS 26, also enable FreeJig in **System Settings > Menu Bar**. If it remains hidden, the system can incorrectly associate its menu item with the disabled menu-bar record of the app that launched it. Enabling that launching app's menu item resolved the observed case. This is a system-setting workaround, and FreeJig does not change other apps' settings automatically.
+On macOS 26, also enable FreeJig in **System Settings > Menu Bar**. The bundle and signing identifier is io.github.tom10271.FreeJigApp. Existing settings stay in their original preferences store. Open the installed GUI through Finder, the Dock, or `open /Applications/FreeJig.app`. The header shows the release version and build counter from the bundle metadata.
 
 ## Use FreeJig
 
-1. Open FreeJig from the menu bar.
+1. Open FreeJig from the Dock or the menu bar.
 2. Choose a movement mode and an idle delay.
 3. For pointer movement, grant FreeJig access in **System Settings > Privacy & Security > Accessibility**. Silent mode needs no Accessibility access unless you enable an extra action.
 4. Click **Start**. The status explains what FreeJig is waiting for.
-5. Click **Stop**, press Control-Command-J, or quit to end the session.
+5. Click **Stop**, press Control-Command-J, or press Command-Q while FreeJig is focused to end the session.
 
 Sessions always start stopped after opening the app. Settings persist locally. If the schedule or app condition blocks a session, FreeJig releases its sleep assertion until the condition matches again. An automatic stop ends the session even while another condition blocks it.
 
@@ -63,16 +64,16 @@ Silent mode controls idle sleep. It does not manufacture keyboard or mouse activ
 ```sh
 swift run FreeJigChecks
 bash scripts/build-app.sh
-dist/FreeJig.app/Contents/MacOS/FreeJig --self-check
+.build/FreeJig.noindex/FreeJig.app/Contents/MacOS/FreeJig --self-check
 ```
 
 The policy checks cover scheduling, overnight boundaries, app conditions, stop deadlines, and settings validation. The app's self-check creates a real macOS power assertion, observes it through IOKit, releases it, and checks that it disappeared.
 
-For a UI check, run `open dist/FreeJig.app --args --show-window`. Check Start, Stop, schedule controls, app selection, and the Accessibility prompt. Real pointer movement, click, scroll, and Shift checks need an Accessibility grant. Check them in an empty test document with no actionable content under the pointer.
+For a UI check, run `open /Applications/FreeJig.app`. Check Start, Stop, schedule controls, app selection, and the Accessibility prompt. Real pointer movement, click, scroll, and Shift checks need an Accessibility grant. Check them in an empty test document with no actionable content under the pointer.
 
-Add `--verify-placement` to check the actual displayed window against the screen bounds. The normal-window path also checks centering. The check exits with status 1 on a mismatch.
+Add `--verify-placement` to check the actual displayed window against the screen bounds. This diagnostic checks centering without registering a menu item, then exits automatically. Quit an existing FreeJig instance before running it. A mismatch or an already-running instance exits with status 1.
 
-GitHub Actions runs the policy checks, builds the app, and uploads a ZIP. Contributor changes can use the same commands. See [the design](docs/design.md) for ownership and policy contracts.
+GitHub Actions runs the policy checks, builds the app, checks startup and window placement, and uploads a ZIP. Contributor changes can use the same commands. See [the design](docs/design.md) for ownership and policy contracts.
 
 See [the verification record](docs/verification.md) for the exact local checks and untested behavior in this first release.
 

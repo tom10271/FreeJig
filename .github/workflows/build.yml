@@ -13,6 +13,8 @@ jobs:
         run: swift run FreeJigChecks
       - name: Build app
         run: bash scripts/build-app.sh
+      - name: Check startup and window placement
+        run: .build/FreeJig.noindex/FreeJig.app/Contents/MacOS/FreeJig --verify-placement
       - uses: actions/upload-artifact@v4
         with:
           name: FreeJig-macOS
