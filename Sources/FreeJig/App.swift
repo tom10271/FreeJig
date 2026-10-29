@@ -29,12 +29,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func showWindow() {
         let screen = NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) } ?? NSScreen.main!
         let view = makeContentController(on: screen)
+        let contentSize = view.preferredContentSize
         let window = self.window ?? NSWindow(contentRect: .zero,
                                             styleMask: [.titled, .closable, .miniaturizable],
                                             backing: .buffered, defer: false)
         window.isReleasedWhenClosed = false
         window.contentViewController = view
-        window.setContentSize(view.preferredContentSize)
+        window.setContentSize(contentSize)
         window.title = "FreeJig"
         window.setFrame(centeredFrame(size: window.frame.size, inside: screen.visibleFrame.insetBy(dx: 16, dy: 16)), display: false)
         window.makeKeyAndOrderFront(nil)
@@ -60,6 +61,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             print("PASS: visible window \(NSStringFromRect(window.frame)) fits display \(NSStringFromRect(bounds))")
             fflush(stdout)
+            NSApp.terminate(nil)
         }
     }
 
@@ -67,8 +69,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let host = NSHostingController(rootView:
             SettingsContent(controller: controller, availableSize: screen.visibleFrame.size)
         )
+        let contentSize = host.view.fittingSize
         host.sizingOptions = []
-        host.preferredContentSize = host.view.fittingSize
+        host.preferredContentSize = contentSize
         return host
     }
 
@@ -109,6 +112,7 @@ private struct SettingsContent: View {
         }
         .frame(width: width)
         .frame(maxHeight: availableSize.height - 64)
+        .fixedSize(horizontal: false, vertical: true)
         .background(Color(nsColor: .windowBackgroundColor))
     }
 }
@@ -147,10 +151,21 @@ struct FreeJigApp {
         if let identifier = Bundle.main.bundleIdentifier,
            let running = NSRunningApplication.runningApplications(withBundleIdentifier: identifier)
             .first(where: { $0.processIdentifier != ProcessInfo.processInfo.processIdentifier }) {
+            if CommandLine.arguments.contains("--verify-placement") {
+                fputs("FAIL: quit the running FreeJig before checking window placement\n", stderr)
+                exit(1)
+            }
             _ = running.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
             return
         }
-        FreeJigScenes.main()
+        if CommandLine.arguments.contains("--verify-placement") {
+            let application = NSApplication.shared
+            let delegate = AppDelegate()
+            application.delegate = delegate
+            withExtendedLifetime(delegate) { application.run() }
+        } else {
+            FreeJigScenes.main()
+        }
     }
 
     @MainActor private static func selfCheck() {

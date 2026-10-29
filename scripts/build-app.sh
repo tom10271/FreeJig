@@ -18,8 +18,8 @@ cat > "$app/Contents/Info.plist" <<'PLIST'
 <key>CFBundleName</key><string>FreeJig</string>
 <key>CFBundleDisplayName</key><string>FreeJig</string>
 <key>CFBundleExecutable</key><string>FreeJig</string>
-<key>CFBundleIdentifier</key><string>io.github.tom10271.FreeJig</string>
-<key>CFBundleVersion</key><string>7</string>
+<key>CFBundleIdentifier</key><string>io.github.tom10271.FreeJig.macOS</string>
+<key>CFBundleVersion</key><string>12</string>
 <key>CFBundleShortVersionString</key><string>0.1.4</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleIconFile</key><string>AppIcon</string>
@@ -32,7 +32,7 @@ cat > "$app/Contents/Info.plist" <<'PLIST'
 PLIST
 swift scripts/create-icon.swift "$root/.build/AppIcon.iconset"
 iconutil -c icns "$root/.build/AppIcon.iconset" -o "$app/Contents/Resources/AppIcon.icns"
-codesign --force --sign - --identifier io.github.tom10271.FreeJig "$app"
+codesign --force --sign - --identifier io.github.tom10271.FreeJig.macOS "$app"
 codesign --verify --strict "$app"
 "$app/Contents/MacOS/FreeJig" --self-check
 touch "$app"

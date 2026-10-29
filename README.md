@@ -24,7 +24,7 @@ The first release is ad-hoc signed, without Apple notarization. On a downloaded 
 
 Opening FreeJig from the Dock shows a centered settings window. Clicking its menu bar icon opens a native popup that closes when you click outside it.
 
-On macOS 26, also enable FreeJig in **System Settings > Menu Bar**. Version 0.1.4 uses the permanent repository bundle identifier io.github.tom10271.FreeJig after macOS repeatedly blocked the original development identifier. Existing settings stay in their original preferences store. Another app's menu bar setting is not required.
+On macOS 26, also enable FreeJig in **System Settings > Menu Bar**. Version 0.1.4 uses the macOS bundle identifier io.github.tom10271.FreeJig.macOS after macOS repeatedly blocked development identities. Existing settings stay in their original preferences store. Open the GUI through Finder, the Dock, or `open dist/FreeJig.app`.
 
 ## Use FreeJig
 
@@ -70,7 +70,7 @@ The policy checks cover scheduling, overnight boundaries, app conditions, stop d
 
 For a UI check, run `open dist/FreeJig.app --args --show-window`. Check Start, Stop, schedule controls, app selection, and the Accessibility prompt. Real pointer movement, click, scroll, and Shift checks need an Accessibility grant. Check them in an empty test document with no actionable content under the pointer.
 
-Add `--verify-placement` to check the actual displayed window against the screen bounds. The normal-window path also checks centering. The check exits with status 1 on a mismatch.
+Add `--verify-placement` to check the actual displayed window against the screen bounds. This diagnostic checks centering without registering a menu item, then exits automatically. Quit an existing FreeJig instance before running it. A mismatch or an already-running instance exits with status 1.
 
 GitHub Actions runs the policy checks, builds the app, and uploads a ZIP. Contributor changes can use the same commands. See [the design](docs/design.md) for ownership and policy contracts.
 
