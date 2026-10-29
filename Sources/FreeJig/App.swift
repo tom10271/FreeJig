@@ -64,16 +64,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func makeContentController(on screen: NSScreen) -> NSViewController {
-        let content = ContentView(controller: controller)
-        let idealSize = NSHostingController(rootView: content).view.fittingSize
-        let width = min(idealSize.width, screen.visibleFrame.width - 32)
-        let height = min(idealSize.height, screen.visibleFrame.height - 64)
         let host = NSHostingController(rootView:
-            ScrollView([.horizontal, .vertical]) { content }
-                .frame(width: width, height: height)
+            SettingsContent(controller: controller, availableSize: screen.visibleFrame.size)
         )
         host.sizingOptions = []
-        host.preferredContentSize = CGSize(width: width, height: height)
+        host.preferredContentSize = host.view.fittingSize
         return host
     }
 
@@ -99,6 +94,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
+private struct SettingsContent: View {
+    @ObservedObject var controller: Controller
+    let availableSize: CGSize
+
+    var body: some View {
+        let preferredWidth = 740 + NSScroller.scrollerWidth(for: .regular, scrollerStyle: .legacy)
+        let width = min(preferredWidth, availableSize.width - 32)
+        ViewThatFits {
+            ContentView(controller: controller)
+            ScrollView(width < preferredWidth ? [.horizontal, .vertical] : .vertical) {
+                ContentView(controller: controller)
+            }
+        }
+        .frame(width: width)
+        .frame(maxHeight: availableSize.height - 64)
+        .background(Color(nsColor: .windowBackgroundColor))
+    }
+}
+
 private struct MenuStatusIcon: View {
     @ObservedObject var controller: Controller
 
@@ -114,12 +128,8 @@ private struct FreeJigScenes: App {
 
     var body: some Scene {
         MenuBarExtra {
-            let bounds = (NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) } ?? NSScreen.main)?.visibleFrame
-                ?? CGRect(x: 0, y: 0, width: 772, height: 814)
-            ScrollView([.horizontal, .vertical]) {
-                ContentView(controller: delegate.controller)
-            }
-            .frame(width: min(740, bounds.width - 32), height: min(750, bounds.height - 64))
+            let screen = NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) } ?? NSScreen.main!
+            SettingsContent(controller: delegate.controller, availableSize: screen.visibleFrame.size)
         } label: {
             MenuStatusIcon(controller: delegate.controller)
         }
