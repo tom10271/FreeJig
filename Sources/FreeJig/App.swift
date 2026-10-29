@@ -51,7 +51,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func verifyPlacement(of window: NSWindow, inside bounds: CGRect, centered: Bool = false) {
         guard CommandLine.arguments.contains("--verify-placement") else { return }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             guard bounds.contains(window.frame) else {
                 fputs("FAIL: visible window \(NSStringFromRect(window.frame)) exceeds display \(NSStringFromRect(bounds))\n", stderr)
                 exit(1)
@@ -131,7 +131,7 @@ private struct FreeJigScenes: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
 
     var body: some Scene {
-        MenuBarExtra {
+        MenuBarExtra(isInserted: .constant(!CommandLine.arguments.contains("--verify-placement"))) {
             let screen = NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) } ?? NSScreen.main!
             SettingsContent(controller: delegate.controller, availableSize: screen.visibleFrame.size)
         } label: {
@@ -158,14 +158,7 @@ struct FreeJigApp {
             _ = running.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
             return
         }
-        if CommandLine.arguments.contains("--verify-placement") {
-            let application = NSApplication.shared
-            let delegate = AppDelegate()
-            application.delegate = delegate
-            withExtendedLifetime(delegate) { application.run() }
-        } else {
-            FreeJigScenes.main()
-        }
+        FreeJigScenes.main()
     }
 
     @MainActor private static func selfCheck() {
