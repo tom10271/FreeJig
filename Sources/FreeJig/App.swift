@@ -134,13 +134,21 @@ private struct FreeJigScenes: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
 
     var body: some Scene {
-        MenuBarExtra(isInserted: .constant(!CommandLine.arguments.contains("--verify-placement"))) {
+        MenuBarExtra {
             let screen = NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) } ?? NSScreen.main!
             SettingsContent(controller: delegate.controller, availableSize: screen.visibleFrame.size)
         } label: {
             MenuStatusIcon(controller: delegate.controller)
         }
         .menuBarExtraStyle(.window)
+    }
+}
+
+private struct PlacementCheckScenes: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
+
+    var body: some Scene {
+        Settings { EmptyView() }
     }
 }
 
@@ -161,7 +169,11 @@ struct FreeJigApp {
             _ = running.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
             return
         }
-        FreeJigScenes.main()
+        if CommandLine.arguments.contains("--verify-placement") {
+            PlacementCheckScenes.main()
+        } else {
+            FreeJigScenes.main()
+        }
     }
 
     @MainActor private static func selfCheck() {
