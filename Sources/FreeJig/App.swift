@@ -71,6 +71,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         let contentSize = host.view.fittingSize
         host.sizingOptions = []
+        if #available(macOS 13.3, *) {
+            host.safeAreaRegions = []
+        }
         host.preferredContentSize = contentSize
         return host
     }

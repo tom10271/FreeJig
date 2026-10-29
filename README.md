@@ -73,7 +73,7 @@ For a UI check, run `open /Applications/FreeJig.app`. Check Start, Stop, schedul
 
 Add `--verify-placement` to check the actual displayed window against the screen bounds. This diagnostic checks centering without registering a menu item, then exits automatically. Quit an existing FreeJig instance before running it. A mismatch or an already-running instance exits with status 1.
 
-GitHub Actions runs the policy checks, builds the app, and uploads a ZIP. Contributor changes can use the same commands. See [the design](docs/design.md) for ownership and policy contracts.
+GitHub Actions runs the policy checks, builds the app, checks startup and window placement, and uploads a ZIP. Contributor changes can use the same commands. See [the design](docs/design.md) for ownership and policy contracts.
 
 See [the verification record](docs/verification.md) for the exact local checks and untested behavior in this first release.
 

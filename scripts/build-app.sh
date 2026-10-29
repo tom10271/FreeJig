@@ -19,7 +19,7 @@ cat > "$app/Contents/Info.plist" <<'PLIST'
 <key>CFBundleDisplayName</key><string>FreeJig</string>
 <key>CFBundleExecutable</key><string>FreeJig</string>
 <key>CFBundleIdentifier</key><string>io.github.tom10271.FreeJig.macOS</string>
-<key>CFBundleVersion</key><string>13</string>
+<key>CFBundleVersion</key><string>18</string>
 <key>CFBundleShortVersionString</key><string>0.1.1</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleIconFile</key><string>AppIcon</string>
