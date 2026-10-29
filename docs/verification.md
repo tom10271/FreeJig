@@ -35,4 +35,12 @@ The enabled Accessibility entry pointed to the correct app path. However, the ma
 
 Control Center explicitly blocked FreeJig's menu item even while FreeJig was enabled in Menu Bar settings. Switching the UI implementation to SwiftUI MenuBarExtra did not fix the block, so that experiment was reverted. Giving the existing menu item a stable name and restarting Control Center did not clear it either. With user approval, enabling ChatGPT's menu-bar entry changed FreeJig from a blocked host to a tracked host. No protected Control Center registry file was modified.
 
-After the user authenticated in System Settings and added the exact updated app copy, FreeJig recognized the grant. The permission warning disappeared, and a Natural-mode session reached Waiting for you to be idle instead of being blocked. The 60-second delay, 60-second interval and 180-minute automatic stop were preserved. The menu-bar unblock was verified through Control Center's log; a physical click on its icon was not automated. The local session was left enabled with optional clicks, scroll and Shift off. ChatGPT's menu-bar entry remains enabled as the approved workaround.
+After the user authenticated in System Settings and added the exact updated app copy, FreeJig recognized the grant. The permission warning disappeared, and a Natural-mode session reached Waiting for you to be idle instead of being blocked. The 60-second delay, 60-second interval and 180-minute automatic stop were preserved. The local session was left enabled with optional clicks, scroll and Shift off.
+
+The subsequent user screenshot showed no menu bar icon. Control Center's tracking log did not prove visibility, so the earlier claim of a resolved menu item was incorrect. System Settings subsequently showed ChatGPT's menu-bar entry off and FreeJig's entry on. FreeJig does not depend on ChatGPT's setting.
+
+## Dock access repair on 29 October 2026
+
+Versions through 0.1.1 explicitly hid FreeJig from the Dock with accessory activation and LSUIElement=true. Version 0.1.2 uses regular activation and LSUIElement=false. Closing the settings window keeps the app running, and reopening it invokes the existing window-reopen handler. This change does not alter input behavior, timers, or thread scheduling. Per-process efficiency-core residency and battery-life savings have not been measured.
+
+The 0.1.2 release build, signature check, runtime self-check, and 80 policy checks passed. The running process reported regular activation and a non-nil application icon. These metadata checks do not prove visible Dock or menu bar icons. The Dock UI inspector timed out, so visual confirmation remains pending. The rebuilt app showed the Accessibility warning again because the ad-hoc code signature changed.

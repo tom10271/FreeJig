@@ -2,7 +2,7 @@
 
 A free, open-source mouse jiggler for macOS. All controls are included under the MIT license.
 
-FreeJig lives in your menu bar. Start it when you want your Mac to stay awake, then let it wait until you stop using the keyboard and mouse. Control-Command-J starts or stops the session from any app.
+FreeJig provides Dock and menu bar access. Start it when you want your Mac to stay awake, then let it wait until you stop using the keyboard and mouse. Control-Command-J starts or stops the session from any app.
 
 ## Build and run
 
@@ -24,11 +24,11 @@ The first release is ad-hoc signed, without Apple notarization. On a downloaded 
 
 If macOS has not made the menu bar icon's anchor visible during startup, FreeJig opens a centered settings window. Clicking the visible menu bar icon uses the popover.
 
-On macOS 26, also enable FreeJig in **System Settings > Menu Bar**. If it remains hidden, the system can incorrectly associate its menu item with the disabled menu-bar record of the app that launched it. Enabling that launching app's menu item resolved the observed case. This is a system-setting workaround, and FreeJig does not change other apps' settings automatically.
+On macOS 26, also enable FreeJig in **System Settings > Menu Bar**. The menu item remained hidden on the development Mac despite this setting. FreeJig also runs as a regular Dock application so you can reopen its settings without the menu item. Enabling another app's menu item did not establish a visible fix.
 
 ## Use FreeJig
 
-1. Open FreeJig from the menu bar.
+1. Open FreeJig from the Dock or the menu bar.
 2. Choose a movement mode and an idle delay.
 3. For pointer movement, grant FreeJig access in **System Settings > Privacy & Security > Accessibility**. Silent mode needs no Accessibility access unless you enable an extra action.
 4. Click **Start**. The status explains what FreeJig is waiting for.
