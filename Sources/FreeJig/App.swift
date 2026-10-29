@@ -14,41 +14,16 @@ func centeredFrame(size: CGSize, inside visibleFrame: CGRect) -> CGRect {
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    let controller = Controller()
-    private var item: NSStatusItem!
-    private let popover = NSPopover()
+    // Keep the preferences domain stable across the bundle-identifier repair.
+    let controller = Controller(defaults: UserDefaults(suiteName: "dev.tomlo.FreeJig")!)
     private var window: NSWindow?
     private var hotKey: EventHotKeyRef?
     private var hotKeyHandler: EventHandlerRef?
-    private var subscription: AnyCancellable?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
-        let menu = NSMenu()
-        let applicationMenu = NSMenu()
-        menu.addItem(withTitle: "FreeJig", action: nil, keyEquivalent: "").submenu = applicationMenu
-        let quitItem = applicationMenu.addItem(withTitle: "Quit FreeJig", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
-        quitItem.target = NSApp
-        quitItem.keyEquivalentModifierMask = .command
-        NSApp.mainMenu = menu
-        item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        item.autosaveName = "FreeJig"
-        item.isVisible = true
-        item.button?.target = self
-        item.button?.action = #selector(showPopover)
-        item.button?.setAccessibilityLabel("FreeJig")
-        popover.behavior = .transient
-        subscription = controller.$state.sink { [weak self] state in
-            let symbol = state == .active ? "cursorarrow.motionlines" : "computermouse"
-            self?.item.button?.image = NSImage(systemSymbolName: symbol, accessibilityDescription: "FreeJig. \(state.title)")
-            self?.item.button?.toolTip = "FreeJig. \(state.title)"
-        }
         installShortcut()
-        if CommandLine.arguments.contains("--show-window") {
-            showWindow()
-        } else {
-            DispatchQueue.main.async { self.showPopover() }
-        }
+        showWindow()
     }
 
     private func showWindow() {
@@ -71,28 +46,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         if !flag { showWindow() }
         return true
-    }
-
-    @objc private func showPopover() {
-        guard let button = item.button, let anchor = button.window,
-              anchor.isVisible, anchor.frame.height > 0, let screen = anchor.screen else {
-            showWindow()
-            return
-        }
-        if popover.isShown { popover.performClose(nil) }
-        else {
-            popover.contentViewController = makeContentController(on: screen)
-            popover.contentSize = popover.contentViewController!.preferredContentSize
-            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-            NSApp.activate(ignoringOtherApps: true)
-            DispatchQueue.main.async {
-                if let window = self.popover.contentViewController?.view.window {
-                    self.verifyPlacement(of: window, inside: screen.frame)
-                } else if CommandLine.arguments.contains("--verify-placement") {
-                    fputs("FAIL: menu-bar popover has no visible window\n", stderr); exit(1)
-                }
-            }
-        }
     }
 
     private func verifyPlacement(of window: NSWindow, inside bounds: CGRect, centered: Bool = false) {
@@ -146,6 +99,34 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
+private struct MenuStatusIcon: View {
+    @ObservedObject var controller: Controller
+
+    var body: some View {
+        Image(systemName: controller.state == .active ? "cursorarrow.motionlines" : "computermouse")
+            .accessibilityLabel("FreeJig. \(controller.state.title)")
+            .help("FreeJig. \(controller.state.title)")
+    }
+}
+
+private struct FreeJigScenes: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
+
+    var body: some Scene {
+        MenuBarExtra {
+            let bounds = (NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) } ?? NSScreen.main)?.visibleFrame
+                ?? CGRect(x: 0, y: 0, width: 772, height: 814)
+            ScrollView([.horizontal, .vertical]) {
+                ContentView(controller: delegate.controller)
+            }
+            .frame(width: min(740, bounds.width - 32), height: min(750, bounds.height - 64))
+        } label: {
+            MenuStatusIcon(controller: delegate.controller)
+        }
+        .menuBarExtraStyle(.window)
+    }
+}
+
 @main
 struct FreeJigApp {
     @MainActor static func main() {
@@ -153,10 +134,7 @@ struct FreeJigApp {
             selfCheck()
             return
         }
-        let application = NSApplication.shared
-        let delegate = AppDelegate()
-        application.delegate = delegate
-        withExtendedLifetime(delegate) { application.run() }
+        FreeJigScenes.main()
     }
 
     @MainActor private static func selfCheck() {
